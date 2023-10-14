@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+        <link rel="stylesheet" href="./chats.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@500&family=Roboto&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    </head>
+    <body>
+        <div class="main-wrapper">
+            <div class="users-list">
+                <div class="contact-list-header">
+                    <button class="search-button">
+                        <span class="material-symbols-outlined">
+                            search
+                        </span>
+                    </button>
+                    <input class="search-bar" placeholder="Search...">
+                </div>
+                <div class="connected-users">
+                </div>
+            </div>
+            <div class="chats-main-wrapper">
+                <div class="user-info">
+                    <div class="user-name">
+                        Miguel Colina
+                    </div>
+                    <div class="user-status">
+                        online
+                    </div>
+                    <div class="linebreak"></div>
+                </div>
+                <div class="videocall-wrapper">
+                    <video class="video-container1" autoplay muted></video>
+                    <video class="video-container2" autoplay></video>
+                </div>
+                <div class="chats-wrapper">
+                    <div class="chat">
+                    </div>
+                </div>
+                <div class="bottom-wrapper">
+                    <div class="linebreak-bottom"></div>
+                    <div class="bottom-bottom-wrapper">
+                        <button class="call-button">
+                            <span class="material-symbols-outlined">
+                                call
+                            </span>
+                        </button>
+                        <form  class="message-form" id="message-form">
+                            <div class="form-wrapper">
+                                <input placeholder="Your message here" class="message-input">
+                                <button class="send-button">
+                                    <span class="material-symbols-outlined">
+                                        send
+                                    </span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body> 
+    <script src="https://cdn.socket.io/4.4.1/socket.io.js"></script>
+    <script type="module" src="./chats.js"></script>
+</html>
