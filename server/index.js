@@ -1,4 +1,5 @@
 require('dotenv').config();
+const  getUser2SocketID = require('./utilities.js');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -21,7 +22,6 @@ const io = new Server(server, {
     }
 });
 
-
 let connectedSockets = [];
 
 app.use(cors({ origin: true, credentials: true }));
@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
     
     socket.on('new-connection', (userID)=>{
         connectedSockets.push({ socketID:socket.id, userID:userID });
-        console.log(connectedSockets);
+        console.log(connectedSockets,'*******************************');
     });
 
     socket.on('disconnect', ()=>{
@@ -43,7 +43,7 @@ io.on('connection', (socket) => {
                 return true;
             };
         });
-        console.log(connectedSockets);
+        console.log(connectedSockets,'--------------------------------');
     });
 
     socket.on('chat-connection', (chatID)=>{
@@ -61,9 +61,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('connect-to-peer', (user2ID, id)=>{
-        const user2SocketID = connectedSockets.filter((value)=>{ 
-            if(value.userID === user2ID){return true}; 
-        })[0]; 
+        const user2SocketID = getUser2SocketID(connectedSockets, user2ID);
         if(user2SocketID){ 
             socket.to(user2SocketID.socketID).emit('new-connection', id); 
         }else{ 
@@ -72,9 +70,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('closed-call', (user2ID)=>{
-        const user2SocketID = connectedSockets.filter((value)=>{ 
-            if(value.userID === user2ID){return true}; 
-        })[0]; 
+        const user2SocketID = getUser2SocketID(connectedSockets, user2ID);
         if(user2SocketID){ 
             socket.to(user2SocketID.socketID).emit('call-ended'); 
         }else{ 
@@ -83,9 +79,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('ring', (user2ID, id)=>{
-        const user2SocketID = connectedSockets.filter((value)=>{ 
-            if(value.userID === user2ID){return true}; 
-        })[0]; 
+        const user2SocketID = getUser2SocketID(connectedSockets, user2ID);
         if(user2SocketID){ 
             socket.to(user2SocketID.socketID).emit('new-ring', id); 
         }else{ 

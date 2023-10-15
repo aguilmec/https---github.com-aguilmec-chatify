@@ -72,7 +72,7 @@ socket.on('new-connection', async (id)=>{
     const localStream = await getMediaStream();
     closeCallButton.addEventListener('click', (event)=>{
         closeTracks(localStream);
-        socket.emit('closed-call', user2ID);
+        socket.emit('closed-call', id);
         event.preventDefault();
         showElements();
         peer.disconnect();
@@ -148,14 +148,12 @@ function populateChat(conversation, userID){
         };        
     });
     callButton.addEventListener('click', async (event)=>{
-        console.log('peeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrr')
         event.preventDefault();
         const id = userID;
         hideElements();
         const peer = new Peer(userID);
         socket.emit('ring', user2ID, id);
         const timeout = setTimeout(()=>{
-            console.log('---------------------------------')
             peer.disconnect();
             showElements();
         },30000);
@@ -188,25 +186,9 @@ function populateChat(conversation, userID){
         });
         
         socket.on('cancelled', ()=>{
-            console.log('cancelled**********')
             peer.disconnect();
             showElements();
         });
-        /*socket.emit('connect-to-peer', user2ID, id);
-        const localStream = await getMediaStream();
-        closeCallButton.addEventListener('click', (event)=>{
-            closeTracks(localStream);
-            socket.emit('closed-call', user2ID);
-            event.preventDefault();
-            showElements();
-            peer.disconnect();
-            console.log('Peer disconnected');
-        });
-        const call = peer.call(user2ID, localStream);
-        call.on('stream', (remoteStream)=>{
-            console.log('Remote stream recieved.');
-            video2.srcObject = remoteStream;
-        });*/
     });
 };
 
@@ -215,7 +197,6 @@ async function getMediaStream(){
         audio: true,
         video: true
     });
-    console.log(typeof stream , '**************************')
     video1.srcObject = stream;
     return stream;
 };
