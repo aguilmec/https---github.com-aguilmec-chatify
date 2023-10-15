@@ -227,7 +227,9 @@ body{
 
 .send-button,
 .call-button,
-.close-call{
+.close-call,
+.ignore-button,
+.answer-button{
     width: 33px;
     height: 30px;
     padding-top: 3px;
@@ -245,6 +247,23 @@ body{
     justify-items: center;
 }
 
+.ignore-button{
+    background-color: rgb(184, 0, 0);
+}
+
+.answer-button{
+    background-color: rgb(0, 122, 6);
+    padding-left: 4px;
+    padding-top: 5px;
+}
+
+.ignore-button,
+.answer-button{
+    height: 65px;
+    width: 65px;
+    border-radius: 40px;
+}
+
 .close-call{
     display: none;
     padding-left: 5px;
@@ -252,6 +271,16 @@ body{
 
 .call-button{
     padding-left: 5px;
+}
+
+.ignore-button:hover{
+    background-color: white;
+    color: rgb(184, 0, 0);
+}
+
+.answer-button:hover{
+    background-color: white;
+    color: rgb(0, 122, 6);
 }
 
 .send-button:hover,
@@ -304,6 +333,7 @@ body{
     height: 100%;
     background-color: white;
     display: inline;
+    position: relative;
 }
 
 .videocall-wrapper{
@@ -348,6 +378,99 @@ body{
 .contact-list-header{
     min-width: 250px;
 }
+
+.modal-wrapper{
+    z-index: 1;
+    position: absolute;
+    display: none;
+    grid-template-columns: 1fr 4fr;
+    background-color: transparent;
+    width: 100vw;
+    height: 100vh;
+    backdrop-filter: blur(1px);
+    transition: opacity 5s;
+}
+
+.modal-wrapper.open{
+    display: grid;
+    opacity: 1;
+}
+
+.modal{
+    z-index: 10;
+    display: grid;
+    grid-template-rows: 2fr 4fr 2fr;
+    margin: auto;
+    width: 35%;
+    height: 55%;
+    background-color: rgb(26, 32, 36)
+}
+
+.modal-bottom-wrapper{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 100px;
+}
+
+.modal-bottom-left{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+}
+
+.modal-bottom-right{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.modal-middle-wrapper{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.caller-image{
+    width: 220px;
+    height: 220px;
+    border-radius: 110px;
+    background-color: aqua;
+    border: solid 2px rgb(160, 160, 160);
+    object-fit: contain;
+}
+
+.modal-top-wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    row-gap: 3px;
+}
+
+.caller{
+    font-family: Open Sans;
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: rgb(187, 187, 187);
+}
+
+.call-type{
+    font-family: Open Sans;
+    font-size: 13px;
+    color: rgb(187, 187, 187);
+}
+
+
+
 
 
 

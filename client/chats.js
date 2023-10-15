@@ -16,6 +16,9 @@ const bottomBottomWrapper = document.querySelector('.bottom-bottom-wrapper');
 const video1 = document.querySelector('.video-container1');
 const video2 = document.querySelector('.video-container2');
 const closeCallButton = document.querySelector('.close-call');
+const modal = document.querySelector('.modal-wrapper');
+const answerButton = document.querySelector('.answer-button');
+const declineButton = document.querySelector('.ignore-button');
 
 const urlParams = new URLSearchParams(window.location.search);
 const URL = 'http://localhost:3500/';
@@ -24,10 +27,40 @@ const mediaDevices = navigator.mediaDevices;
 let room;
 let userID;
 let user2ID;
+let user;
+let profilePicture;
 getUserInfo();
 
 socket.on('incoming-message', (message)=>{
     appendMessage(message, 'incoming');
+});
+
+socket.on('new-ring', async (id)=>{
+    modal.classList.add('open');
+    answerButton.addEventListener('click', (event)=>{
+        modal.classList.remove('open');
+        event.preventDefault();
+        socket.emit('answer', id);
+    });
+    
+    declineButton.addEventListener('click', (event)=>{
+        event.preventDefault();
+        socket.emit('cancel', id);
+        modal.classList.remove('open');
+    });
+
+    //modal.classList.add('open');
+    /*const timeout = setTimeout(()=>{
+        alert('removed');
+        modal.classList.remove('open');
+    },30000);
+    if(response){
+        socket.emit('answer', id);
+    }else{
+
+        ///////cambiar a cancel
+        socket.emit('answer', id);
+    };*/
 });
 
 socket.on('new-connection', async (id)=>{
@@ -37,6 +70,14 @@ socket.on('new-connection', async (id)=>{
     const connection = peer.connect(id);
     console.log('Connection stablished to peer id: ', id);
     const localStream = await getMediaStream();
+    closeCallButton.addEventListener('click', (event)=>{
+        closeTracks(localStream);
+        socket.emit('closed-call', user2ID);
+        event.preventDefault();
+        showElements();
+        peer.disconnect();
+        console.log('Peer disconnected');
+    });
     socket.on('call-ended', ()=>{
         closeTracks(localStream);
         peer.disconnect();
@@ -76,7 +117,9 @@ async function getUserInfo(){
         userID = userInfo.userID;
         socket.userID = userID;
         socket.emit('new-connection', userID);
-        userName.innerHTML = `${userInfo.name} ${userInfo.surname}`;
+        user = `${userInfo.name} ${userInfo.surname}`;
+        profilePicture = 'https://cdn.wealthygorilla.com/wp-content/uploads/2022/09/Anuel-AA-Net-Worth.jpg';
+        userName.innerHTML = user;
         populateContacts(userInfo.contacts, userInfo.userID, socket);
     }catch(error){
         console.log(error)
@@ -105,14 +148,51 @@ function populateChat(conversation, userID){
         };        
     });
     callButton.addEventListener('click', async (event)=>{
-        const id = userID;
+        console.log('peeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrr')
         event.preventDefault();
+        const id = userID;
         hideElements();
         const peer = new Peer(userID);
-        console.log('Peer created: ', peer);
-        peer.connect(user2ID);
-        console.log('Peer connected to id: ', user2ID);
-        socket.emit('connect-to-peer', user2ID, id);
+        socket.emit('ring', user2ID, id);
+        const timeout = setTimeout(()=>{
+            console.log('---------------------------------')
+            peer.disconnect();
+            showElements();
+        },30000);
+        socket.on('answered', async ()=>{
+            peer.connect(user2ID);
+            clearTimeout(timeout);
+            socket.emit('connect-to-peer', user2ID, id);
+            const localStream = await getMediaStream();
+            socket.on('call-ended', ()=>{
+                //funcion 1
+                console.log('******************************')
+                closeTracks(localStream);
+                peer.disconnect();
+                showElements();
+                //funcion 1
+            });
+            closeCallButton.addEventListener('click', (event)=>{
+                event.preventDefault();
+                //funcion 1
+                closeTracks(localStream);
+                showElements();
+                peer.disconnect();
+                //funcion 1
+                socket.emit('closed-call', user2ID);
+            });
+            const call = peer.call(user2ID, localStream);
+            call.on('stream', (remoteStream)=>{
+                video2.srcObject = remoteStream;
+            });
+        });
+        
+        socket.on('cancelled', ()=>{
+            console.log('cancelled**********')
+            peer.disconnect();
+            showElements();
+        });
+        /*socket.emit('connect-to-peer', user2ID, id);
         const localStream = await getMediaStream();
         closeCallButton.addEventListener('click', (event)=>{
             closeTracks(localStream);
@@ -126,7 +206,7 @@ function populateChat(conversation, userID){
         call.on('stream', (remoteStream)=>{
             console.log('Remote stream recieved.');
             video2.srcObject = remoteStream;
-        });
+        });*/
     });
 };
 
@@ -257,5 +337,6 @@ function closeTracks(localStream){
         console.log('Track stopped');
     });
 };
+
 
 

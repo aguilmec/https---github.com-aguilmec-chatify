@@ -82,6 +82,39 @@ io.on('connection', (socket) => {
         }; 
     });
 
+    socket.on('ring', (user2ID, id)=>{
+        const user2SocketID = connectedSockets.filter((value)=>{ 
+            if(value.userID === user2ID){return true}; 
+        })[0]; 
+        if(user2SocketID){ 
+            socket.to(user2SocketID.socketID).emit('new-ring', id); 
+        }else{ 
+            console.log('Error'); 
+        }; 
+    });
+
+    socket.on('answer', (id)=>{
+        const user1SocketID = connectedSockets.filter((value)=>{
+            if(value.userID === id){return true};
+        })[0];
+        if(user1SocketID){ 
+            socket.to(user1SocketID.socketID).emit('answered'); 
+        }else{ 
+            console.log('Error'); 
+        }; 
+    });
+
+    socket.on('cancel', (id)=>{
+        const user1SocketID = connectedSockets.filter((value)=>{
+            if(value.userID === id){return true};
+        })[0];
+        if(user1SocketID){ 
+            socket.to(user1SocketID.socketID).emit('cancelled'); 
+        }else{ 
+            console.log('Error'); 
+        }; 
+    });
+
 });
 
 mongoose.connection.once('open', ()=>{
