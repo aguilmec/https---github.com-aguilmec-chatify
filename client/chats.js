@@ -12,8 +12,10 @@ const userInfo = document.querySelector('.user-info');
 const linebreak = document.querySelector('.linebreak');
 const linebreakBottom = document.querySelector('.linebreak-bottom');
 const bottomWrapper = document.querySelector('.bottom-wrapper');
+const bottomBottomWrapper = document.querySelector('.bottom-bottom-wrapper');
 const video1 = document.querySelector('.video-container1');
 const video2 = document.querySelector('.video-container2');
+const closeCallButton = document.querySelector('.close-call');
 
 const urlParams = new URLSearchParams(window.location.search);
 const URL = 'http://localhost:3500/';
@@ -29,12 +31,18 @@ socket.on('incoming-message', (message)=>{
 });
 
 socket.on('new-connection', async (id)=>{
-    hideShowElements();
+    hideElements();
     const peer = new Peer(userID);
     console.log('Invite recieved! Created a new peer!');
     const connection = peer.connect(id);
     console.log('Connection stablished to peer id: ', id);
     const localStream = await getMediaStream();
+    socket.on('call-ended', ()=>{
+        closeTracks(localStream);
+        peer.disconnect();
+        console.log('Peer disconnected');
+        showElements();
+    });
     video1.srcObject = localStream;
     peer.on('call', (call)=>{
         console.log('Call recieved');
@@ -99,13 +107,21 @@ function populateChat(conversation, userID){
     callButton.addEventListener('click', async (event)=>{
         const id = userID;
         event.preventDefault();
-        hideShowElements();
+        hideElements();
         const peer = new Peer(userID);
         console.log('Peer created: ', peer);
         peer.connect(user2ID);
         console.log('Peer connected to id: ', user2ID);
         socket.emit('connect-to-peer', user2ID, id);
         const localStream = await getMediaStream();
+        closeCallButton.addEventListener('click', (event)=>{
+            closeTracks(localStream);
+            socket.emit('closed-call', user2ID);
+            event.preventDefault();
+            showElements();
+            peer.disconnect();
+            console.log('Peer disconnected');
+        });
         const call = peer.call(user2ID, localStream);
         call.on('stream', (remoteStream)=>{
             console.log('Remote stream recieved.');
@@ -205,8 +221,8 @@ async function populateContacts(contacts, userID, name, surname){
     });
 };
 
-function hideShowElements(){
-    console.log('hide show elements')
+function hideElements(){
+    console.log('Hide elements');
     chatsWrapper.style.display = 'none';
     videoCallContainer.style.display = 'grid';
     userInfo.style.backgroundColor = 'rgb(26, 32, 36)';
@@ -214,4 +230,32 @@ function hideShowElements(){
     linebreak.style.backgroundColor = 'rgb(61, 61, 61)';
     linebreakBottom.style.backgroundColor = 'rgb(61, 61, 61)';
     userName.style.color = 'rgb(80, 80, 80)';
+    closeCallButton.style.display = 'flex';
+    callButton.style.display = 'none';
+    messageForm.style.display = 'none';
+    sendButton.style.display = 'none';
 };
+
+function showElements(){
+    console.log('Show elements');
+    chatsWrapper.style.display = 'inline';
+    videoCallContainer.style.display = 'none';
+    userInfo.style.backgroundColor = 'transparent';
+    bottomWrapper.style.backgroundColor = 'transparent';
+    linebreak.style.backgroundColor = 'rgb(206, 206, 206)';
+    linebreakBottom.style.backgroundColor = 'rgb(206, 206, 206)';
+    userName.style.color = 'rgba(29, 29, 29, 0.753)';
+    closeCallButton.style.display = 'none';
+    callButton.style.display = 'inline'
+    messageForm.style.display = 'flex';
+    sendButton.style.display = 'inline';
+};
+
+function closeTracks(localStream){
+    localStream.getTracks().forEach((track)=>{
+        track.stop();
+        console.log('Track stopped');
+    });
+};
+
+

@@ -64,9 +64,19 @@ io.on('connection', (socket) => {
         const user2SocketID = connectedSockets.filter((value)=>{ 
             if(value.userID === user2ID){return true}; 
         })[0]; 
-        console.log(user2SocketID);
         if(user2SocketID){ 
             socket.to(user2SocketID.socketID).emit('new-connection', id); 
+        }else{ 
+            console.log('Error'); 
+        }; 
+    });
+
+    socket.on('closed-call', (user2ID)=>{
+        const user2SocketID = connectedSockets.filter((value)=>{ 
+            if(value.userID === user2ID){return true}; 
+        })[0]; 
+        if(user2SocketID){ 
+            socket.to(user2SocketID.socketID).emit('call-ended'); 
         }else{ 
             console.log('Error'); 
         }; 

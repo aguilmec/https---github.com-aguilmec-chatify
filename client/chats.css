@@ -226,7 +226,8 @@ body{
 }
 
 .send-button,
-.call-button{
+.call-button,
+.close-call{
     width: 33px;
     height: 30px;
     padding-top: 3px;
@@ -244,8 +245,18 @@ body{
     justify-items: center;
 }
 
+.close-call{
+    display: none;
+    padding-left: 5px;
+}
+
+.call-button{
+    padding-left: 5px;
+}
+
 .send-button:hover,
-.call-button:hover{
+.call-button:hover,
+.close-call:hover{
     background-color: white;
     color: rgba(248, 75, 75, 1);
 }
@@ -292,6 +303,7 @@ body{
 .chats-wrapper{
     height: 100%;
     background-color: white;
+    display: inline;
 }
 
 .videocall-wrapper{
