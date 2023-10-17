@@ -35,65 +35,58 @@ socket.on('incoming-message', (message)=>{
     appendMessage(message, 'incoming');
 });
 
-socket.on('new-ring', async (id)=>{
+socket.on('new-ring', (id, timeout)=>{
+    function answer(event){
+        event.preventDefault();
+        console.log('answered');
+            socket.emit('answer', id, timeout);
+            modal.classList.remove('open');
+            answerButton.removeEventListener('click', answer)
+    };
     modal.classList.add('open');
-    answerButton.addEventListener('click', (event)=>{
-        modal.classList.remove('open');
-        event.preventDefault();
-        socket.emit('answer', id);
-    });
-    
-    declineButton.addEventListener('click', (event)=>{
-        event.preventDefault();
-        socket.emit('cancel', id);
-        modal.classList.remove('open');
-    });
-
-    //modal.classList.add('open');
-    /*const timeout = setTimeout(()=>{
-        alert('removed');
-        modal.classList.remove('open');
-    },30000);
-    if(response){
-        socket.emit('answer', id);
-    }else{
-
-        ///////cambiar a cancel
-        socket.emit('answer', id);
-    };*/
+    answerButton.addEventListener('click', answer);
 });
 
-socket.on('new-connection', async (id)=>{
-    hideElements();
-    const peer = new Peer(userID);
-    console.log('Invite recieved! Created a new peer!');
-    const connection = peer.connect(id);
-    console.log('Connection stablished to peer id: ', id);
+socket.on('new-request', async (id)=>{
+    console.log('New request');
     const localStream = await getMediaStream();
-    closeCallButton.addEventListener('click', (event)=>{
-        closeTracks(localStream);
-        socket.emit('closed-call', id);
-        event.preventDefault();
-        showElements();
-        peer.disconnect();
-        console.log('Peer disconnected');
-    });
-    socket.on('call-ended', ()=>{
-        closeTracks(localStream);
-        peer.disconnect();
-        console.log('Peer disconnected');
-        showElements();
-    });
-    video1.srcObject = localStream;
-    peer.on('call', (call)=>{
-        console.log('Call recieved');
-        call.answer(localStream);
-        call.on('stream', (remoteStream)=>{
-            console.log('Remote stream recieved.');
-            video2.srcObject = remoteStream;
+    const peer = new Peer(userID);
+    
+    peer.on('open', ()=>{
+        console.log('Peer ready and connected to the server');
+        video1.srcObject = localStream;
+        hideElements();
+        const call = peer.call(id, localStream);
+        call.on('stream', (stream)=>{
+            video2.srcObject = stream;
+            console.log('Stream set to remote video tag'); 
         });
     });
+
+    const handleCloseCallWrapper = (peer, localStream, id) => {
+        return (event) => {
+            event.preventDefault();
+            console.log('Clicked the end call button');
+            handleCloseCall(peer, localStream, id);
+        };
+    };
+    const closeCallButtonClickHandler = handleCloseCallWrapper(peer, localStream, id);
+    closeCallButton.addEventListener('click', closeCallButtonClickHandler);
+
+    peer.on('close', ()=>{
+        console.log('Peer closed');
+        closeCallButton.removeEventListener('click', closeCallButtonClickHandler);
+    });
 });
+
+function handleCloseCall(peer, localStream, id){
+    showElements();
+    //socket.emit('close-call', id);
+    peer.destroy();
+    closeTracks(localStream);
+    console.log('Stopped the stream');
+    
+};
 
 function appendMessage(string, type){
     const message = document.createElement('div');
@@ -131,6 +124,7 @@ function populateChat(conversation, userID){
     user2ID = users.filter((user)=>{
         if(user !== userID){return true};
     })[0];
+
     chatContainer.innerHTML = '';
     conversation.messages.forEach((chat)=>{
         let message = document.createElement('div');
@@ -147,58 +141,6 @@ function populateChat(conversation, userID){
             chatContainer.appendChild(message);
         };        
     });
-    callButton.addEventListener('click', async (event)=>{
-        event.preventDefault();
-        const id = userID;
-        hideElements();
-        const peer = new Peer(userID);
-        socket.emit('ring', user2ID, id);
-        const timeout = setTimeout(()=>{
-            peer.disconnect();
-            showElements();
-        },30000);
-        socket.on('answered', async ()=>{
-            peer.connect(user2ID);
-            clearTimeout(timeout);
-            socket.emit('connect-to-peer', user2ID, id);
-            const localStream = await getMediaStream();
-            socket.on('call-ended', ()=>{
-                //funcion 1
-                console.log('******************************')
-                closeTracks(localStream);
-                peer.disconnect();
-                showElements();
-                //funcion 1
-            });
-            closeCallButton.addEventListener('click', (event)=>{
-                event.preventDefault();
-                //funcion 1
-                closeTracks(localStream);
-                showElements();
-                peer.disconnect();
-                //funcion 1
-                socket.emit('closed-call', user2ID);
-            });
-            const call = peer.call(user2ID, localStream);
-            call.on('stream', (remoteStream)=>{
-                video2.srcObject = remoteStream;
-            });
-        });
-        
-        socket.on('cancelled', ()=>{
-            peer.disconnect();
-            showElements();
-        });
-    });
-};
-
-async function getMediaStream(){
-    const stream = await mediaDevices.getUserMedia({
-        audio: true,
-        video: true
-    });
-    video1.srcObject = stream;
-    return stream;
 };
 
 async function populateContacts(contacts, userID, name, surname){
@@ -238,20 +180,22 @@ async function populateContacts(contacts, userID, name, surname){
             socket.emit('leave-current-room',room);
             event.preventDefault();
             try{
-                const response = await fetch(URL + 'chats/chat', {
-                    method: 'POST',
-                    withCredentials: true,
-                    credentials: 'include',
-                    body: JSON.stringify({ chatID: chatID }),
-                    headers:
-                    {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const conversation = await response.json();
-                socket.emit('chat-connection', chatID);
-                room = chatID;
-                populateChat(conversation, userID);
+                if(room !== button.value){
+                    const response = await fetch(URL + 'chats/chat', {
+                        method: 'POST',
+                        withCredentials: true,
+                        credentials: 'include',
+                        body: JSON.stringify({ chatID: chatID }),
+                        headers:
+                        {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const conversation = await response.json();
+                    socket.emit('chat-connection', chatID);
+                    room = chatID;
+                    populateChat(conversation, userID);
+                };                
             }catch(error){
                 console.error(error);
             };
@@ -259,27 +203,125 @@ async function populateContacts(contacts, userID, name, surname){
     });
 
     sendButton.addEventListener('click', (event)=>{
-        messageInput.placeholder = 'Your message here';
-        const chatID = sendButton.value;
         event.preventDefault();
-        socket.emit('new-message', userID, chatID, messageInput.value);
-        appendMessage(messageInput.value, 'outbound');
-        try{
-            fetch(URL + 'chats/save', {
-                method: 'POST',
-                withCredentials: true,
-                credentials: 'include',
-                body: JSON.stringify( {chatID: chatID, message: messageInput.value} ),
-                headers: 
-                {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }catch(error){
-            console.error(error);
-        };
-        messageInput.value = '';
+        if(messageInput.value !== '' && room !== ''){
+            messageInput.placeholder = 'Your message here';
+            const chatID = sendButton.value;
+            socket.emit('new-message', userID, chatID, messageInput.value);
+            appendMessage(messageInput.value, 'outbound');
+            try{
+                fetch(URL + 'chats/save', {
+                    method: 'POST',
+                    withCredentials: true,
+                    credentials: 'include',
+                    body: JSON.stringify( {chatID: chatID, message: messageInput.value} ),
+                    headers: 
+                    {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }catch(error){
+                console.error(error);
+            };
+            messageInput.value = '';
+        }; 
     });
+};
+
+socket.on('answered', async (timeout)=>{
+
+    console.log('Call answered');
+    clearTimeout(timeout);
+    const localStream = await getMediaStream();
+    video1.srcObject = localStream;
+    const localPeer = new Peer(userID);
+    localPeer.on('close',()=>{
+        closeCallButton.removeEventListener('click', closeCallButtonClickHandler);
+    });
+    const handleCloseCallWrapper = (localPeer, localStream) => {
+        return (event) => {
+            event.preventDefault();
+            console.log('Clicked the end call button');
+            closeTracks(localStream);
+            localPeer.destroy();
+            showElements();
+        };
+    };
+    const closeCallButtonClickHandler = handleCloseCallWrapper(localPeer, localStream);
+    closeCallButton.addEventListener('click', closeCallButtonClickHandler);
+
+    localPeer.on('open', (id)=>{
+        console.log('Peer ready and connected to the server');
+        socket.emit('request', user2ID, id);
+        localPeer.on('call', (call)=>{
+            console.log('Call recieved');
+            hideElements();
+            
+            call.answer(localStream);
+            call.on('stream', (stream)=>{
+                video2.srcObject = stream;
+                console.log('Stream set to the remote video tag');
+            });
+        });
+        
+    });
+});
+
+callButton.addEventListener('click', ()=>{
+    const timeout = setTimeout(()=>{
+        showElements();
+        console.log('Call not answered');
+    },30000);
+    
+    socket.emit('ring', user2ID, userID, timeout);
+    hideElements();
+    
+    
+    /*const peer = new Peer(userID);
+    peer.on('open', (id)=>{
+        console.log('Peer ready and connected to the server');
+        socket.emit('request', user2ID, id);
+        peer.on('call', async (call)=>{
+            console.log('Call recieved');
+            hideElements();
+            const localStream = await getMediaStream();
+            video1.srcObject = localStream;
+            call.answer(localStream);
+            call.on('stream', (stream)=>{
+                video2.srcObject = stream;
+                console.log('Stream set to the remote video tag');
+            });
+        });
+    });*/
+    
+
+    
+    /*const id = userID;
+    const peer = new Peer(userID);
+    socket.emit('connection-request', user2ID, id);
+    socket.on('new-remote-connection', ()=>{
+        peer.connect(user2ID);
+    });
+    const localStream = await getMediaStream();
+    video1.srcObject = localStream;
+    hideElements();
+    const call = peer.call(user2ID, localStream);
+    call.on('stream', (remoteStream)=>{
+        video2.srcObject = remoteStream;
+    });*/
+});
+
+function handleAnswer(event, userID, user2ID){
+    event.preventDefault();
+    const id = userID;
+    socket.emit('answer', user2ID, id);
+    modal.classList.remove('open');
+};
+
+function handleDecline(event, userID, user2ID){
+    event.preventDefault();
+    socket.emit('declined', user2ID);
+    modal.classList.remove('open');
 };
 
 function hideElements(){
@@ -319,5 +361,11 @@ function closeTracks(localStream){
     });
 };
 
-
-
+async function getMediaStream(){
+    const constraints = {
+        audio: true,
+        video: true
+    };
+    const stream = await mediaDevices.getUserMedia(constraints);
+    return stream;
+};

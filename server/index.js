@@ -9,7 +9,6 @@ const authRoutes = require('./routes/auth.js');
 const chatsRoutes = require('./routes/chats.js')
 const connect = require('./config/db.js');
 const cookieParser = require('cookie-parser');
-//const p2p = require('socket.io-p2p-server').Server;
 
 connect();
 
@@ -28,13 +27,11 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-//io.use(p2p);
-
 io.on('connection', (socket) => {
     
     socket.on('new-connection', (userID)=>{
         connectedSockets.push({ socketID:socket.id, userID:userID });
-        console.log(connectedSockets,'*******************************');
+        //console.log(connectedSockets);
     });
 
     socket.on('disconnect', ()=>{
@@ -43,7 +40,7 @@ io.on('connection', (socket) => {
                 return true;
             };
         });
-        console.log(connectedSockets,'--------------------------------');
+        //console.log(connectedSockets);
     });
 
     socket.on('chat-connection', (chatID)=>{
@@ -60,54 +57,47 @@ io.on('connection', (socket) => {
         console.log(`Socket: ${socket.id} has left room: ${room}`);
     });
 
-    socket.on('connect-to-peer', (user2ID, id)=>{
+    socket.on('ring', (user2ID, userID, timeout)=>{
         const user2SocketID = getUser2SocketID(connectedSockets, user2ID);
         if(user2SocketID){ 
-            socket.to(user2SocketID.socketID).emit('new-connection', id); 
+            console.log('New ring event emitted');
+            socket.to(user2SocketID.socketID).emit('new-ring', userID, timeout); 
         }else{ 
             console.log('Error'); 
         }; 
     });
 
-    socket.on('closed-call', (user2ID)=>{
+    socket.on('answer', (user2ID, timeout)=>{
         const user2SocketID = getUser2SocketID(connectedSockets, user2ID);
         if(user2SocketID){ 
-            socket.to(user2SocketID.socketID).emit('call-ended'); 
+            console.log('New ring event emitted');
+            socket.to(user2SocketID.socketID).emit('answered', timeout); 
         }else{ 
             console.log('Error'); 
         }; 
     });
 
-    socket.on('ring', (user2ID, id)=>{
+    socket.on('request', (user2ID, id)=>{
         const user2SocketID = getUser2SocketID(connectedSockets, user2ID);
         if(user2SocketID){ 
-            socket.to(user2SocketID.socketID).emit('new-ring', id); 
+            console.log('New request event emitted');
+            socket.to(user2SocketID.socketID).emit('new-request', id); 
         }else{ 
             console.log('Error'); 
         }; 
     });
 
-    socket.on('answer', (id)=>{
-        const user1SocketID = connectedSockets.filter((value)=>{
-            if(value.userID === id){return true};
-        })[0];
-        if(user1SocketID){ 
-            socket.to(user1SocketID.socketID).emit('answered'); 
+    socket.on('close-call', (id)=>{
+        const user2SocketID = getUser2SocketID(connectedSockets, id);
+        if(user2SocketID){ 
+            console.log('New close call event emitted');
+            socket.to(user2SocketID.socketID).emit('closed-call'); 
         }else{ 
             console.log('Error'); 
         }; 
     });
 
-    socket.on('cancel', (id)=>{
-        const user1SocketID = connectedSockets.filter((value)=>{
-            if(value.userID === id){return true};
-        })[0];
-        if(user1SocketID){ 
-            socket.to(user1SocketID.socketID).emit('cancelled'); 
-        }else{ 
-            console.log('Error'); 
-        }; 
-    });
+
 
 });
 
