@@ -1,9 +1,9 @@
-//import io from 'socket.io-client';
 const usersList = document.querySelector('.connected-users');
 const chatContainer = document.querySelector('.chat');
 const messageInput = document.querySelector('.message-input');
 const messageForm = document.querySelector('.message-form');
 const userName = document.querySelector('.user-name');
+const userStatus = document.querySelector('.user-status');
 const sendButton = document.querySelector('.send-button');
 const callButton = document.querySelector('.call-button');
 const videoCallContainer = document.querySelector('.videocall-wrapper');
@@ -19,6 +19,11 @@ const closeCallButton = document.querySelector('.close-call');
 const modal = document.querySelector('.modal-wrapper');
 const answerButton = document.querySelector('.answer-button');
 const declineButton = document.querySelector('.ignore-button');
+const video1Name = document.querySelector('.video1-name');
+const video2Name = document.querySelector('.video2-name');
+const mainMessage = document.querySelector('.main-message');
+const chatButton = document.querySelector('.chat-button');
+
 
 const urlParams = new URLSearchParams(window.location.search);
 const URL = 'http://localhost:3500/';
@@ -28,34 +33,52 @@ let room;
 let userID;
 let user2ID;
 let user;
+let user2;
 let profilePicture;
+
 getUserInfo();
+
+
+chatButton.style.color = 'rgb(206, 206, 206)';
+chatsWrapper.style.display = 'none'
 
 socket.on('incoming-message', (message)=>{
     appendMessage(message, 'incoming');
 });
 
 socket.on('new-ring', (id, timeout)=>{
+
+    function decline(event){
+        event.preventDefault();
+        console.log('Declined call');
+        modal.classList.remove('open');
+        declineButton.removeEventListener('click', decline);
+        showElements();
+    };
+
     function answer(event){
         event.preventDefault();
-        console.log('answered');
+        console.log('Answered call');
             socket.emit('answer', id, timeout);
             modal.classList.remove('open');
             answerButton.removeEventListener('click', answer)
     };
+
     modal.classList.add('open');
     answerButton.addEventListener('click', answer);
+    declineButton.addEventListener('click', decline);
 });
 
 socket.on('new-request', async (id)=>{
     console.log('New request');
     const localStream = await getMediaStream();
+    video1.srcObject = localStream;
+    video1Name.innerHTML = user;
+    video2Name.innerHTML = user2;
+    hideElements();
     const peer = new Peer(userID);
-    
     peer.on('open', ()=>{
         console.log('Peer ready and connected to the server');
-        video1.srcObject = localStream;
-        hideElements();
         const call = peer.call(id, localStream);
         call.on('stream', (stream)=>{
             video2.srcObject = stream;
@@ -112,7 +135,7 @@ async function getUserInfo(){
         socket.emit('new-connection', userID);
         user = `${userInfo.name} ${userInfo.surname}`;
         profilePicture = 'https://cdn.wealthygorilla.com/wp-content/uploads/2022/09/Anuel-AA-Net-Worth.jpg';
-        userName.innerHTML = user;
+        
         populateContacts(userInfo.contacts, userInfo.userID, socket);
     }catch(error){
         console.log(error)
@@ -144,6 +167,7 @@ function populateChat(conversation, userID){
 };
 
 async function populateContacts(contacts, userID, name, surname){
+    console.log(contacts)
     let promises = contacts.map(async (contact)=>{
         const response = await fetch(URL + 'chats/user', {
             method: 'POST',
@@ -157,7 +181,7 @@ async function populateContacts(contacts, userID, name, surname){
         });
         const userInfo = await response.json();
         return `
-            <button class="contact-wrapper" value="${contact.chatID}">
+            <button class="contact-wrapper" data-object='{ "chatID": "${contact.chatID}", "name": "${userInfo.name} ${userInfo.surname}" }'>
                 <div class="user-profile-image">
                     <img class="profile-picture" src="https://cdn.wealthygorilla.com/wp-content/uploads/2022/09/Anuel-AA-Net-Worth.jpg">
                 </div>
@@ -174,7 +198,21 @@ async function populateContacts(contacts, userID, name, surname){
     usersList.innerHTML = buttons.join('');
 
     document.querySelectorAll('.contact-wrapper').forEach((button)=>{
-        const chatID = button.value;
+        const dataString = button.dataset.object;
+        const data = JSON.parse(dataString);
+        const chatID = data.chatID;
+        user2 = data.name;
+        button.addEventListener('click', ()=>{
+            if(mainMessage.style.display !== 'none'){
+                mainMessage.style.display = 'none';
+                chatsWrapper.style.display = 'inline';
+                userInfo.style.display = 'grid'
+            }; 
+            userName.innerHTML = data.name; 
+            userStatus.innerHTML = 'online';          
+        });
+        
+        
         button.addEventListener('click', async (event)=>{
             sendButton.value = chatID;
             socket.emit('leave-current-room',room);
@@ -229,11 +267,11 @@ async function populateContacts(contacts, userID, name, surname){
 };
 
 socket.on('answered', async (timeout)=>{
-
     console.log('Call answered');
     clearTimeout(timeout);
     const localStream = await getMediaStream();
     video1.srcObject = localStream;
+    hideElements();
     const localPeer = new Peer(userID);
     localPeer.on('close',()=>{
         closeCallButton.removeEventListener('click', closeCallButtonClickHandler);
@@ -254,16 +292,13 @@ socket.on('answered', async (timeout)=>{
         console.log('Peer ready and connected to the server');
         socket.emit('request', user2ID, id);
         localPeer.on('call', (call)=>{
-            console.log('Call recieved');
-            hideElements();
-            
+            console.log('Call recieved');        
             call.answer(localStream);
             call.on('stream', (stream)=>{
                 video2.srcObject = stream;
                 console.log('Stream set to the remote video tag');
             });
         });
-        
     });
 });
 
@@ -272,43 +307,10 @@ callButton.addEventListener('click', ()=>{
         showElements();
         console.log('Call not answered');
     },30000);
-    
+    video1Name.innerHTML = user;
+    video2Name.innerHTML = user2;
     socket.emit('ring', user2ID, userID, timeout);
     hideElements();
-    
-    
-    /*const peer = new Peer(userID);
-    peer.on('open', (id)=>{
-        console.log('Peer ready and connected to the server');
-        socket.emit('request', user2ID, id);
-        peer.on('call', async (call)=>{
-            console.log('Call recieved');
-            hideElements();
-            const localStream = await getMediaStream();
-            video1.srcObject = localStream;
-            call.answer(localStream);
-            call.on('stream', (stream)=>{
-                video2.srcObject = stream;
-                console.log('Stream set to the remote video tag');
-            });
-        });
-    });*/
-    
-
-    
-    /*const id = userID;
-    const peer = new Peer(userID);
-    socket.emit('connection-request', user2ID, id);
-    socket.on('new-remote-connection', ()=>{
-        peer.connect(user2ID);
-    });
-    const localStream = await getMediaStream();
-    video1.srcObject = localStream;
-    hideElements();
-    const call = peer.call(user2ID, localStream);
-    call.on('stream', (remoteStream)=>{
-        video2.srcObject = remoteStream;
-    });*/
 });
 
 function handleAnswer(event, userID, user2ID){
@@ -328,10 +330,8 @@ function hideElements(){
     console.log('Hide elements');
     chatsWrapper.style.display = 'none';
     videoCallContainer.style.display = 'grid';
-    userInfo.style.backgroundColor = 'rgb(26, 32, 36)';
-    bottomWrapper.style.backgroundColor = 'rgb(26, 32, 36)';
-    linebreak.style.backgroundColor = 'rgb(61, 61, 61)';
-    linebreakBottom.style.backgroundColor = 'rgb(61, 61, 61)';
+    userInfo.style.backgroundColor = 'rgba(15, 18, 20, 0.959)';
+    bottomWrapper.style.backgroundColor = 'rgba(15, 18, 20, 0.959)';
     userName.style.color = 'rgb(80, 80, 80)';
     closeCallButton.style.display = 'flex';
     callButton.style.display = 'none';
@@ -345,8 +345,6 @@ function showElements(){
     videoCallContainer.style.display = 'none';
     userInfo.style.backgroundColor = 'transparent';
     bottomWrapper.style.backgroundColor = 'transparent';
-    linebreak.style.backgroundColor = 'rgb(206, 206, 206)';
-    linebreakBottom.style.backgroundColor = 'rgb(206, 206, 206)';
     userName.style.color = 'rgba(29, 29, 29, 0.753)';
     closeCallButton.style.display = 'none';
     callButton.style.display = 'inline'
