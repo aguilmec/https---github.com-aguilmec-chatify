@@ -23,7 +23,7 @@ const video1Name = document.querySelector('.video1-name');
 const video2Name = document.querySelector('.video2-name');
 const mainMessage = document.querySelector('.main-message');
 const chatButton = document.querySelector('.chat-button');
-
+const logoutButton = document.querySelector('.logout-button');
 
 const urlParams = new URLSearchParams(window.location.search);
 const URL = 'http://localhost:3500/';
@@ -38,9 +38,26 @@ let profilePicture;
 
 getUserInfo();
 
-
 chatButton.style.color = 'rgb(206, 206, 206)';
-chatsWrapper.style.display = 'none'
+chatsWrapper.style.display = 'none';
+
+logoutButton.addEventListener('click', async (event)=>{
+    console.log('mierdas');
+    event.preventDefault();
+    try{
+        const res = await fetch(URL + 'auth/logout',{
+            withCredentials: 'true',
+            credentials: 'include'
+        });
+        if(res.status === 200){
+            location.assign('/login')
+        }
+    }catch(error){
+        console.log('There was an error loging you out, please try again.');
+    };
+    
+
+});
 
 socket.on('incoming-message', (message)=>{
     appendMessage(message, 'incoming');

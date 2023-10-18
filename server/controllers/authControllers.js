@@ -65,4 +65,10 @@ async function register(req, res){
     };
 };
 
-module.exports = { getUserInfo, login, register };
+function logout(req, res){
+    console.log('logout')
+    res.cookie('jwt','......', { maxAge: 1, sameSite: 'none', secure: true });
+    res.status(200).end('loged out');
+};
+
+module.exports = { getUserInfo, login, register, logout };

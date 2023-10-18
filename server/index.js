@@ -97,8 +97,6 @@ io.on('connection', (socket) => {
         }; 
     });
 
-
-
 });
 
 mongoose.connection.once('open', ()=>{
