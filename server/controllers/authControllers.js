@@ -14,6 +14,29 @@ function handleErrors(err){
     return error;
 };
 
+async function verify(req, res){
+    const token = req.cookies.jwt;
+    if(!token){
+        res.status(401).end('/login');
+    }else{
+        const id = jwt.verify(token, process.env.SECRET).id;
+        try{
+            const user = await User.findById(id);
+            if(!user){
+                res.status(401).end('/login');
+            }else{
+                if(user.id === id){
+                    res.status(200).end('User verified!');
+                }else{
+                    res.status(401).end('/login');
+                };
+            };
+        }catch(error){
+           console.log('error') 
+        };        
+    };
+};
+
 function createJWT(id){
     return jwt.sign({ id }, process.env.SECRET, {
         expiresIn: maxAge 
@@ -71,4 +94,4 @@ function logout(req, res){
     res.status(200).end('loged out');
 };
 
-module.exports = { getUserInfo, login, register, logout };
+module.exports = { getUserInfo, login, register, logout, verify };

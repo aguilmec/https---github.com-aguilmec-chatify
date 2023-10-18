@@ -3,7 +3,6 @@ const { Chat } = require('../Models/Chat.js');
 const { User } = require('../Models/User.js');
 const jwt = require('jsonwebtoken');
 
-
 async function getChat(req, res){
     const { chatID } = req.body;
     try{
@@ -41,4 +40,3 @@ async function getUser(req, res){
 };
 
 module.exports = { getChat, saveMessage, getUser };
-
