@@ -353,7 +353,7 @@ body{
     display: none;
     position: relative;
     background-image: url("1.jpg");
-    background-color: rgba(255,255,255,0.93);
+    background-color: rgba(255, 255, 255, 0.93);
     background-blend-mode: lighten;
     border-bottom: 1px solid rgb(206, 206, 206);
     border-top: 1px solid rgb(206, 206, 206);
@@ -716,7 +716,9 @@ body{
     align-items: center;
 }
 
-.password-form-input{
+.password-form-input,
+.new-password-form-input,
+.confirm-password-form-input{
     height: 28px;
     border: 0;
     border: none;
@@ -726,6 +728,11 @@ body{
     background-color: transparent;
     margin-right: 10px;
     border-bottom: solid 1px rgb(206, 206, 206);
+}
+
+.password-form-input:focus{
+    outline: none;
+    box-shadow: 0 0 0 1pt rgb(201, 201, 201);
 }
 
 .save-password-button{
@@ -752,6 +759,29 @@ body{
     border: none;
 }
 
+.save-password-button{
+    background-color: rgba(248, 75, 75, 1);
+    color: rgb(255, 255, 255);
+    margin-top: 10px;
+    width: 120px;
+    height: 35px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    border: solid 1px rgb(201, 201, 201);
+    cursor: pointer;
+    font-family: open sans;
+    transition: background-color 0.2s;
+}
+
+.save-password-button:hover{
+    background-color: rgb(255, 255, 255);
+    color: rgba(248, 75, 75, 1);
+}
+
+.bottom-password-wrapper{
+    display: none;
+}
 
 
 

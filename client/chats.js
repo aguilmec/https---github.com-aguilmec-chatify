@@ -29,6 +29,12 @@ const profileButton = document.querySelector('.profile-button');
 const usersWrapper = document.querySelector('.users-list');
 const returnButton = document.querySelector('.return-button');
 const pictureSelector = document.querySelector('.profile-picture-wrapper');
+const changePasswordButton = document.querySelector('.change-password-button');
+const passwordChangeWrapper = document.querySelector('.bottom-password-wrapper');
+const savePaswordButton = document.querySelector('.save-password-button');
+const newPasswordInput = document.querySelector('.new-password-form-input');
+const confirmPasswordInput = document.querySelector('.confirm-password-form-input');
+const oldPasswordInput = document.querySelector('.password-form-input')
 
 const urlParams = new URLSearchParams(window.location.search);
 const URL = 'http://localhost:3500/';
@@ -40,6 +46,44 @@ let user2ID;
 let user;
 let user2;
 let profilePicture;
+
+function validatePasswords(){
+    if(newPasswordInput.value === confirmPasswordInput.value){
+        return true;
+    }else{
+        return false;
+    };
+};
+
+savePaswordButton.addEventListener('click', async (event)=>{
+    console.log(newPasswordInput.value);
+    console.log(oldPasswordInput.value);
+    event.preventDefault();
+    const validation = validatePasswords();
+    if(validation){
+        const res = await fetch(URL + 'chats/password', {
+            withCredentials: true,
+            credentials: 'include',
+            method: 'POST',
+            body: JSON.stringify({ newPassword: newPasswordInput.value, oldPassword: oldPasswordInput.value }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if(res.status === 200){
+            console.log('Bien!')
+        }else{
+            console.log('No');
+        };
+    }else{
+        //passwords dont match
+    };
+
+});
+
+changePasswordButton.addEventListener('click', ()=>{
+    passwordChangeWrapper.style.display = 'inline';
+});
 
 pictureSelector.addEventListener('click', (event)=>{
     event.preventDefault();
@@ -53,6 +97,7 @@ pictureSelector.addEventListener('click', (event)=>{
         reader.onloadend = (e)=>{
             const base64String = reader.result;
             document.querySelector('.user-profile-picture').src = base64String;
+            //send the picture 
         };
         reader.readAsDataURL(file);
     };

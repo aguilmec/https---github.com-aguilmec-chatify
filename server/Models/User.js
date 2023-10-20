@@ -38,10 +38,15 @@ userSchema.pre('save', async function(next){
 });
 
 userSchema.statics.login = async function (username, password){
+    console.log('7')
     const user = await this.findOne({ username });
+    console.log('8')
     if(user){
+        console.log('9')
         const result = await bcrypt.compare(password, user.password);
+        console.log('10')
         if(result){
+            console.log('11')
             return user; 
         };
         throw Error('Incorrect password');
