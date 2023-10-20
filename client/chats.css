@@ -5,7 +5,7 @@ body{
 
 .main-wrapper{
     display: grid;
-    grid-template-columns: 100px 1fr 4fr;
+    grid-template-columns: 100px 350px 1fr;
     height: 100vh;
     margin-left: auto;
     margin-right: auto;
@@ -25,7 +25,8 @@ body{
     grid-template-rows: 2fr 18fr 2fr;
 }
 
-.users-list{
+.users-list,
+.user-profile-wrapper{
     display: grid;
     grid-template-rows: 2fr 20fr;  
     border-right: 1px solid rgb(206, 206, 206);
@@ -115,11 +116,6 @@ body{
     border-radius: 40px;
 }
 
-.user-info-wrapper{
-    width: 100%;
-    padding-left: 20px;
-}
-
 .contact-wrapper{
     display: flex;
     flex-direction: row;
@@ -155,7 +151,8 @@ body{
 }
 
 
-.contact-list-header{
+.contact-list-header,
+.profile-wrapper-header{
     display: flex;
     justify-content: center;
     align-items: center;
@@ -353,7 +350,7 @@ body{
 .chats-wrapper{
     height: 100%;
     background-color: white;
-    display: inline;
+    display: none;
     position: relative;
     background-image: url("1.jpg");
     background-color: rgba(255,255,255,0.93);
@@ -596,7 +593,164 @@ body{
     align-items: center;
 }
 
+.user-profile-wrapper{
+    display: none;
+    grid-row: 2fr 20fr;
+}
 
+.profile-picture-wrapper{
+    align-self: center;
+    margin-top: 35px;
+    margin-bottom: 25px;
+    border: none;
+    cursor: pointer;
+    width: 200px;
+    height: 200px;
+    border-radius: 100px;
+    padding: 0;
+    position: relative;
+}
+
+.change-icon{
+    background-color: rgba(0, 0, 0, 0.308);
+    align-self: center;
+    justify-self: center;
+    width: 198px;
+    height: 198px;
+    border-radius: 100px;
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: Open sans;
+    font-size: 11px;
+    border: solid 2px rgba(248, 75, 75, 1);
+}
+
+.user-profile-picture{
+    height: 200px;
+    width: 200px;
+    object-fit: cover;
+    aspect-ratio: 1/1;
+    border-radius: 100px;
+}
+
+.profile-wrapper-header{
+    border-bottom: 1px solid rgb(206, 206, 206);
+    display: grid;
+    grid-template-columns: 1fr 8fr;
+}
+
+.left-wrapper,
+.right-wrapper{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-family: Open Sans;
+    color: rgb(80, 80, 80);
+}
+
+.right-wrapper{
+    letter-spacing: 1px;
+    font-size: 18px;
+    cursor: default;
+}
+
+.user-profile{
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name-profile{
+    margin: 0;
+    text-align: center;
+    font-family: Open Sans;
+    font-size: 22px;
+    color: rgb(80,80,80);
+    font-weight: bold;
+    cursor: default
+}
+
+.name-info,
+.change-password,
+.password-form-text{
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-family: open sans;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: justify;
+    font-size: 13px;
+    color: rgb(80, 80, 80);
+    cursor: default;
+}
+
+.return-button{
+    background-color: transparent;
+    cursor: pointer;
+    border: none;
+}
+
+.password-change-wrapper{
+    margin-top: 30px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    padding-right: 15px;
+    color: rgb(80, 80, 80);
+}
+
+.top-password-wrapper{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.change-password-form{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+}
+
+.password-form-input{
+    height: 28px;
+    border: 0;
+    border: none;
+    font-family: Open Sans;
+    color: rgb(61, 61, 61);
+    text-align: center;
+    background-color: transparent;
+    margin-right: 10px;
+    border-bottom: solid 1px rgb(206, 206, 206);
+}
+
+.save-password-button{
+    cursor: pointer;
+
+}
+
+.save-button-wrapper{
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.change-password-button{
+    background-color: transparent;
+    border: none;
+    color: rgba(248, 75, 75, 1);
+    cursor: pointer;
+}
+
+.change-password-button:active{
+    border: none;
+}
 
 
 

@@ -24,6 +24,11 @@ const video2Name = document.querySelector('.video2-name');
 const mainMessage = document.querySelector('.main-message');
 const chatButton = document.querySelector('.chat-button');
 const logoutButton = document.querySelector('.logout-button');
+const userProfile = document.querySelector('.user-profile-wrapper');
+const profileButton = document.querySelector('.profile-button');
+const usersWrapper = document.querySelector('.users-list');
+const returnButton = document.querySelector('.return-button');
+const pictureSelector = document.querySelector('.profile-picture-wrapper');
 
 const urlParams = new URLSearchParams(window.location.search);
 const URL = 'http://localhost:3500/';
@@ -35,6 +40,38 @@ let user2ID;
 let user;
 let user2;
 let profilePicture;
+
+pictureSelector.addEventListener('click', (event)=>{
+    event.preventDefault();
+    const input = document.createElement('input');
+    input.type = 'file';
+
+    input.onchange = (e) => { 
+        const file = e.target.files[0]; 
+        console.log(typeof file)
+        const reader = new FileReader();
+        reader.onloadend = (e)=>{
+            const base64String = reader.result;
+            document.querySelector('.user-profile-picture').src = base64String;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    input.click();
+    
+});
+
+profileButton.addEventListener('click', (event)=>{
+    event.preventDefault();
+    usersWrapper.style.display = 'none';
+    userProfile.style.display = 'grid';
+});
+
+returnButton.addEventListener('click', (event)=>{
+    event.preventDefault();
+    usersWrapper.style.display = 'grid';
+    userProfile.style.display = 'none';
+});
 
 const res = await fetch(URL + 'auth/verify', {
     credentials: 'include',
