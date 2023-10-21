@@ -33,7 +33,7 @@ async function getUser(req, res){
     const { username } = req.body;
     try{
         const user = await User.findOne({ username: username });
-        res.status(200).json({ name: user.name, surname: user.surname });
+        res.status(200).json({ name: user.name, surname: user.surname, picture: user.picture });
     }catch(error){
         res.status(400).end('');
         console.log(error);
@@ -73,4 +73,21 @@ async function changePassword(req, res){
     };
 };
 
-module.exports = { getChat, saveMessage, getUser, changePassword };
+async function updatePicture(req, res){
+    const token = req.cookies.jwt;
+    const newPicture = req.body.picture;
+    const userID = jwt.verify(token, process.env.SECRET).id;
+    try{
+        const user = await User.findByIdAndUpdate(userID, { picture: newPicture });
+        res.status(200).json({ status: 'ok' });
+    }catch(error){
+        console.log(error);
+        res.status(500).json({ status: 'Could not complete the request' });
+    };
+    
+
+}
+
+
+
+module.exports = { getChat, saveMessage, getUser, changePassword, updatePicture };

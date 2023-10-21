@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth.js');
 const chatsRoutes = require('./routes/chats.js')
 const connect = require('./config/db.js');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 
 connect();
 
@@ -24,6 +25,8 @@ const io = new Server(server, {
 let connectedSockets = [];
 
 app.use(cors({ origin: true, credentials: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json());
 app.use(cookieParser());
 

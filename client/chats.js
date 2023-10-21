@@ -29,12 +29,14 @@ const profileButton = document.querySelector('.profile-button');
 const usersWrapper = document.querySelector('.users-list');
 const returnButton = document.querySelector('.return-button');
 const pictureSelector = document.querySelector('.profile-picture-wrapper');
+const profilePicture2 = document.querySelector('.profile-picture');
 const changePasswordButton = document.querySelector('.change-password-button');
 const passwordChangeWrapper = document.querySelector('.bottom-password-wrapper');
 const savePaswordButton = document.querySelector('.save-password-button');
 const newPasswordInput = document.querySelector('.new-password-form-input');
 const confirmPasswordInput = document.querySelector('.confirm-password-form-input');
-const oldPasswordInput = document.querySelector('.password-form-input')
+const oldPasswordInput = document.querySelector('.password-form-input');
+const passwordChangeMessage = document.querySelector('.password-change-message');
 
 const urlParams = new URLSearchParams(window.location.search);
 const URL = 'http://localhost:3500/';
@@ -46,6 +48,7 @@ let user2ID;
 let user;
 let user2;
 let profilePicture;
+let base64String;
 
 function validatePasswords(){
     if(newPasswordInput.value === confirmPasswordInput.value){
@@ -56,6 +59,7 @@ function validatePasswords(){
 };
 
 savePaswordButton.addEventListener('click', async (event)=>{
+    passwordChangeMessage.innerHTML = '';
     console.log(newPasswordInput.value);
     console.log(oldPasswordInput.value);
     event.preventDefault();
@@ -71,15 +75,35 @@ savePaswordButton.addEventListener('click', async (event)=>{
             }
         });
         if(res.status === 200){
-            console.log('Bien!')
+            passwordChangeMessage.style.display = 'inline';
+            passwordChangeMessage.innerHTML = 'Password successfully changed!';
+            passwordChangeMessage.style.color = 'rgb(0, 104, 5)';
+            hidePasswordMessage('success');
+
+            //log out the user
+  
         }else{
-            console.log('No');
+            passwordChangeMessage.style.display = 'inline';
+            passwordChangeMessage.innerHTML = 'Password is not correct!';
+            passwordChangeMessage.style.color = 'rgb(167, 0, 0)';
+            hidePasswordMessage('failed');
         };
     }else{
-        //passwords dont match
+        passwordChangeMessage.style.display = 'inline';
+        passwordChangeMessage.innerHTML = 'Passwords dont match!';
+        passwordChangeMessage.style.color = 'rgb(167, 0, 0)';
+        hidePasswordMessage('failed');
     };
-
 });
+
+function hidePasswordMessage(status){
+    setTimeout(()=>{
+        passwordChangeMessage.style.display = 'none';
+        if(status === 'success'){
+            passwordChangeWrapper.style.display = 'none';
+        };
+    },5000);
+}
 
 changePasswordButton.addEventListener('click', ()=>{
     passwordChangeWrapper.style.display = 'inline';
@@ -94,10 +118,25 @@ pictureSelector.addEventListener('click', (event)=>{
         const file = e.target.files[0]; 
         console.log(typeof file)
         const reader = new FileReader();
-        reader.onloadend = (e)=>{
-            const base64String = reader.result;
-            document.querySelector('.user-profile-picture').src = base64String;
-            //send the picture 
+        reader.onloadend = async (e)=>{
+            base64String = reader.result;
+            const res = await fetch(URL + 'chats/picture', {
+                method: 'POST',
+                body: JSON.stringify({ picture: base64String }),
+                headers:{
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+                credentials: 'include',
+            });
+            if(res.status === 200){
+
+                //handle large files, code: 413
+                console.log('bien');
+                document.querySelector('.user-profile-picture').src = base64String;
+                profilePicture2.src = base64String;
+                console.log(base64String)
+            };
         };
         reader.readAsDataURL(file);
     };
@@ -240,8 +279,8 @@ if(res.status === 200){
             socket.userID = userID;
             socket.emit('new-connection', userID);
             user = `${userInfo.name} ${userInfo.surname}`;
-            profilePicture = 'https://cdn.wealthygorilla.com/wp-content/uploads/2022/09/Anuel-AA-Net-Worth.jpg';
-            
+            profilePicture2.src = userInfo.picture;
+            document.querySelector('.user-profile-picture').src = userInfo.picture;
             populateContacts(userInfo.contacts, userInfo.userID, socket);
         }catch(error){
             console.log(error)
@@ -273,7 +312,6 @@ if(res.status === 200){
     };
 
     async function populateContacts(contacts, userID, name, surname){
-        console.log(contacts)
         let promises = contacts.map(async (contact)=>{
             const response = await fetch(URL + 'chats/user', {
                 method: 'POST',
